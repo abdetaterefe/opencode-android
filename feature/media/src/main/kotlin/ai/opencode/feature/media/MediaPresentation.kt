@@ -21,6 +21,7 @@ import android.window.OnBackInvokedCallback
 import android.window.OnBackInvokedDispatcher
 import androidx.compose.animation.core.animate
 import androidx.compose.animation.core.tween
+import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
@@ -1554,6 +1555,10 @@ private fun StatusBarEffect(controller: MediaViewerController) {
  */
 @Composable
 internal fun MediaBackHandler(enabled: Boolean, onBack: () -> Unit) {
+    if (Build.VERSION.SDK_INT < Build.VERSION_CODES.TIRAMISU) {
+        BackHandler(enabled = enabled, onBack = onBack)
+        return
+    }
     val activity = LocalContext.current.findActivity() ?: return
     val currentOnBack by rememberUpdatedState(onBack)
     DisposableEffect(activity, enabled) {
@@ -1577,6 +1582,10 @@ internal fun MediaPredictiveBackHandler(
     onCancelled: () -> Unit,
     onInvoked: () -> Unit,
 ) {
+    if (Build.VERSION.SDK_INT < Build.VERSION_CODES.TIRAMISU) {
+        BackHandler(enabled = enabled, onBack = onInvoked)
+        return
+    }
     val activity = LocalContext.current.findActivity() ?: return
     val currentOnStarted by rememberUpdatedState(onStarted)
     val currentOnProgressed by rememberUpdatedState(onProgressed)

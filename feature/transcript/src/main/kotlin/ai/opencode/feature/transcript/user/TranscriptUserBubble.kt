@@ -28,8 +28,10 @@ import ai.opencode.server.model.SessionLink
 import android.app.Activity
 import android.content.Context
 import android.content.ContextWrapper
+import android.os.Build
 import android.window.OnBackInvokedCallback
 import android.window.OnBackInvokedDispatcher
+import androidx.activity.compose.BackHandler
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.ui.layout.LayoutCoordinates
@@ -573,6 +575,10 @@ private class UserBubbleSelectionToolbar(private val platform: TextToolbar, priv
 /** Back ends the selection (iOS: tapping elsewhere), ahead of the screen's own Back while it's up. */
 @Composable
 private fun SelectionBackHandler(onBack: () -> Unit) {
+    if (Build.VERSION.SDK_INT < Build.VERSION_CODES.TIRAMISU) {
+        BackHandler(onBack = onBack)
+        return
+    }
     val activity = LocalContext.current.findActivity() ?: return
     val current by rememberUpdatedState(onBack)
     DisposableEffect(activity) {

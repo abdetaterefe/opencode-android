@@ -1,9 +1,12 @@
 package ai.opencode.core.ui
 
 import android.content.Context
+import android.os.Build
 import androidx.compose.material3.ColorScheme
+import androidx.compose.material3.darkColorScheme
 import androidx.compose.material3.dynamicDarkColorScheme
 import androidx.compose.material3.dynamicLightColorScheme
+import androidx.compose.material3.lightColorScheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.graphics.Color
@@ -20,6 +23,9 @@ import androidx.compose.ui.platform.LocalContext
 object DynamicSystemTheme {
     /** The wallpaper's Material colour scheme. */
     fun colorScheme(context: Context, isDark: Boolean): ColorScheme {
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.S) {
+            return if (isDark) darkColorScheme() else lightColorScheme()
+        }
         if (isDark) {
             return dynamicDarkColorScheme(context)
         }

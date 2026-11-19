@@ -3,6 +3,7 @@ package ai.opencode.feature.system.notifications
 import android.Manifest
 import android.app.Activity
 import android.content.pm.PackageManager
+import android.os.Build
 import android.os.Bundle
 
 /**
@@ -14,6 +15,11 @@ class NotificationPermissionActivity : Activity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.TIRAMISU) {
+            answer(true)
+            finish()
+            return
+        }
         if (savedInstanceState == null) requestPermissions(arrayOf(Manifest.permission.POST_NOTIFICATIONS), REQUEST)
     }
 
