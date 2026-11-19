@@ -448,10 +448,15 @@ private class SpeechSetup(private val context: Context) {
      */
     private suspend fun setup(install: Boolean): Language = mutex.withLock {
         resolved?.let { return it }
-        val onDevice = withContext(Dispatchers.Main) { SpeechRecognizer.isOnDeviceRecognitionAvailable(context) }
+        val onDevice = Build.VERSION.SDK_INT >= Build.VERSION_CODES.S &&
+            withContext(Dispatchers.Main) { SpeechRecognizer.isOnDeviceRecognitionAvailable(context) }
         val available = withContext(Dispatchers.Main) { SpeechRecognizer.isRecognitionAvailable(context) }
         if (!onDevice && !available) throw DictationError.LocaleUnsupported()
-        val support = withTimeoutOrNull(INSTALL_WAIT) { support(onDevice) }
+        val support = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            withTimeoutOrNull(INSTALL_WAIT) { support(onDevice) }
+        } else {
+            null
+        }
         val supported = when {
             support == null -> null
             onDevice -> support.installedOnDeviceLanguages + support.pendingOnDeviceLanguages + support.supportedOnDeviceLanguages
