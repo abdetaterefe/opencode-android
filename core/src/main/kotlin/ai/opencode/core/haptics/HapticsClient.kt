@@ -8,6 +8,7 @@ import ai.opencode.core.diagnostics.LabMarks
 import ai.opencode.core.log.AppLog
 import android.media.AudioManager
 import android.content.Context
+import android.os.Build
 import android.os.VibrationEffect
 import android.os.VibrationEffect.Composition
 import android.os.Vibrator
@@ -89,12 +90,17 @@ fun <T> HapticEffect(haptic: Haptic, trigger: T, condition: (old: T, new: T) -> 
 internal class LiveHaptics(context: Context) {
     private val context = context.applicationContext
     private val vibrator: Vibrator =
-        (context.getSystemService(Context.VIBRATOR_MANAGER_SERVICE) as VibratorManager).defaultVibrator
-    private val primitives = vibrator.areAllPrimitivesSupported(
-        Composition.PRIMITIVE_CLICK,
-        Composition.PRIMITIVE_TICK,
-        Composition.PRIMITIVE_LOW_TICK,
-    )
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+            (context.getSystemService(Context.VIBRATOR_MANAGER_SERVICE) as VibratorManager).defaultVibrator
+        } else {
+            context.getSystemService(Context.VIBRATOR_SERVICE) as Vibrator
+        }
+    private val primitives = Build.VERSION.SDK_INT >= Build.VERSION_CODES.R &&
+        vibrator.areAllPrimitivesSupported(
+            Composition.PRIMITIVE_CLICK,
+            Composition.PRIMITIVE_TICK,
+            Composition.PRIMITIVE_LOW_TICK,
+        )
 
     fun play(haptic: Haptic) {
         trace(haptic.name)
@@ -121,7 +127,7 @@ internal class LiveHaptics(context: Context) {
         Settings.System.getInt(context.contentResolver, Settings.System.HAPTIC_FEEDBACK_ENABLED, 1) != 0
 
     private fun effect(feedback: HapticFeedback): VibrationEffect {
-        if (!primitives) return fallback(feedback)
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.R || !primitives) return fallback(feedback)
         val composition = VibrationEffect.startComposition()
         when (feedback) {
             HapticFeedback.Selection -> composition.addPrimitive(Composition.PRIMITIVE_TICK, 0.6f)
