@@ -6,6 +6,7 @@ import android.graphics.Bitmap
 import android.graphics.BitmapShader
 import android.graphics.RuntimeShader
 import android.graphics.Shader
+import android.os.Build
 import androidx.compose.foundation.Canvas
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -166,8 +167,8 @@ internal class ConnectionScopeRenderer {
     var highContrast = false
 
     private val raster = ConnectionTraceRaster()
-    private val shader = RuntimeShader(ConnectionScopeShaders.CONNECTION_SCOPE_FRAGMENT)
-    private val brush = ShaderBrush(shader)
+    private val shader by lazy { RuntimeShader(ConnectionScopeShaders.CONNECTION_SCOPE_FRAGMENT) }
+    private val brush by lazy { ShaderBrush(shader) }
     private var grid: DotScopeGrid? = null
     /** Two fields, alternated per frame, so the render thread never reads one being written. */
     private var fields: List<Pair<Bitmap, BitmapShader>> = emptyList()
@@ -203,6 +204,7 @@ internal class ConnectionScopeRenderer {
     }
 
     fun draw(scope: DrawScope, monitor: ConnectionMonitor) {
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.TIRAMISU) return
         val grid = prepareGrid(scope) ?: return
         if (fields.isEmpty()) return
         val (bitmap, fieldShader) = fields[frameIndex]

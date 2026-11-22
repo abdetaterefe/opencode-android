@@ -1556,6 +1556,7 @@ private fun StatusBarEffect(controller: MediaViewerController) {
  */
 @Composable
 internal fun MediaBackHandler(enabled: Boolean, onBack: () -> Unit) {
+    if (Build.VERSION.SDK_INT < Build.VERSION_CODES.TIRAMISU) return
     val activity = LocalContext.current.findActivity() ?: return
     val currentOnBack by rememberUpdatedState(onBack)
     DisposableEffect(activity, enabled) {
@@ -1579,6 +1580,7 @@ internal fun MediaPredictiveBackHandler(
     onCancelled: () -> Unit,
     onInvoked: () -> Unit,
 ) {
+    if (Build.VERSION.SDK_INT < Build.VERSION_CODES.TIRAMISU) return
     val activity = LocalContext.current.findActivity() ?: return
     val currentOnStarted by rememberUpdatedState(onStarted)
     val currentOnProgressed by rememberUpdatedState(onProgressed)

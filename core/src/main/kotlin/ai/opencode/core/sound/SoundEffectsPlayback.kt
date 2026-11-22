@@ -12,6 +12,7 @@ import android.media.AudioDeviceCallback
 import android.media.AudioDeviceInfo
 import android.media.AudioManager
 import android.media.MediaPlayer
+import android.os.Build
 import android.os.Handler
 import android.os.HandlerThread
 import androidx.lifecycle.DefaultLifecycleObserver
@@ -237,8 +238,10 @@ class SoundEffectsPlayback(
                 override fun onAudioDevicesRemoved(removedDevices: Array<out AudioDeviceInfo>) =
                     center.post(SoundEffectsEvent.RouteChange())
             }, handler)
-            audioManager.addOnModeChangedListener(handler::post) { mode ->
-                center.post(SoundEffectsEvent.Interruption(began = mode != AudioManager.MODE_NORMAL))
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+                audioManager.addOnModeChangedListener(handler::post) { mode ->
+                    center.post(SoundEffectsEvent.Interruption(began = mode != AudioManager.MODE_NORMAL))
+                }
             }
             return playback
         }

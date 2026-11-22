@@ -3,6 +3,7 @@ package ai.opencode.feature.voice
 import ai.opencode.core.dependencies.*
 import ai.opencode.core.log.AppLog
 import android.content.Context
+import android.os.Build
 import android.os.VibrationAttributes
 import android.os.VibrationEffect
 import android.os.Vibrator
@@ -35,7 +36,13 @@ class VoiceHapticEngine(private val context: Context, private val clock: Clock =
     private data class Scheduled(val kind: Kind, val anchor: Duration, val pattern: VoiceHapticPattern) {
         val end get() = anchor + (pattern.duration + 0.012).seconds
     }
-    private val vibrator: Vibrator = context.getSystemService(VibratorManager::class.java).defaultVibrator
+    private val vibrator: Vibrator =
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+            context.getSystemService(VibratorManager::class.java).defaultVibrator
+        } else {
+            @Suppress("DEPRECATION")
+            context.getSystemService(Context.VIBRATOR_SERVICE) as Vibrator
+        }
     private val scheduled = mutableListOf<Scheduled>()
     private val lock = Any()
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.Main.immediate)
@@ -73,8 +80,13 @@ class VoiceHapticEngine(private val context: Context, private val clock: Clock =
         }
         if (amplitudes.all { it == 0 }) { vibrator.cancel(); return }
         val (timings, levels) = waveformSteps(amplitudes)
-        vibrator.vibrate(VibrationEffect.createWaveform(timings, levels, -1),
-            VibrationAttributes.Builder().setUsage(VibrationAttributes.USAGE_TOUCH).build())
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+            vibrator.vibrate(VibrationEffect.createWaveform(timings, levels, -1),
+                VibrationAttributes.Builder().setUsage(VibrationAttributes.USAGE_TOUCH).build())
+        } else {
+            @Suppress("DEPRECATION")
+            vibrator.vibrate(VibrationEffect.createWaveform(timings, levels, -1))
+        }
     }
     override fun cancel(kind: Kind) = synchronized(lock) {
         val now = clock.now()

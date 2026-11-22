@@ -7,6 +7,7 @@ import androidx.compose.ui.graphics.drawscope.drawIntoCanvas
 import kotlin.math.floor
 import kotlin.math.max
 import kotlin.math.min
+import android.os.Build
 import kotlin.math.roundToInt
 
 /**
@@ -195,6 +196,7 @@ object AgentActivityOrb {
      * Nothing when [field] is null. Main thread only (shared shader).
      */
     fun DrawScope.drawOrb(field: GyroField?, cells: List<GyroCell> = GyroCell.seven, dark: Boolean) {
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.TIRAMISU) return
         field ?: return
         val box = min(size.width, size.height)
         val sizeDp = box / density

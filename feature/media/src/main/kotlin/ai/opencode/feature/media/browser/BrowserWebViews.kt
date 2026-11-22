@@ -19,6 +19,7 @@ import android.content.pm.ApplicationInfo
 import android.content.res.Resources
 import android.graphics.Color
 import android.graphics.Bitmap
+import android.os.Build
 import android.os.Handler
 import android.os.Looper
 import android.os.Message
@@ -598,9 +599,11 @@ class BrowserWebViews private constructor() {
                 view,
                 ViewGroup.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT),
             )
-            activity.window.insetsController?.apply {
-                systemBarsBehavior = WindowInsetsController.BEHAVIOR_SHOW_TRANSIENT_BARS_BY_SWIPE
-                hide(WindowInsets.Type.systemBars())
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+                activity.window.insetsController?.apply {
+                    systemBarsBehavior = WindowInsetsController.BEHAVIOR_SHOW_TRANSIENT_BARS_BY_SWIPE
+                    hide(WindowInsets.Type.systemBars())
+                }
             }
             entry.fullscreen = view
             entry.fullscreenCallback = callback
@@ -616,7 +619,9 @@ class BrowserWebViews private constructor() {
         entry.fullscreen = null
         entry.fullscreenCallback = null
         (view.parent as? ViewGroup)?.removeView(view)
-        activityOf(entry.context.baseContext)?.window?.insetsController?.show(WindowInsets.Type.systemBars())
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+            activityOf(entry.context.baseContext)?.window?.insetsController?.show(WindowInsets.Type.systemBars())
+        }
         callback?.onCustomViewHidden()
     }
 

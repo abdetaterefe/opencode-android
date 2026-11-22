@@ -9,6 +9,7 @@ import ai.opencode.core.ui.OpenCodeTheme
 import ai.opencode.core.ui.drawerKeyboardField
 import ai.opencode.server.model.PastedText
 import android.net.Uri
+import android.os.Build
 import android.os.Process
 import android.os.SystemClock
 import android.view.WindowInsetsController
@@ -867,6 +868,7 @@ fun ComposerTextInput(
     // this window can control the keys, a field that already has focus asks for them again.
     val view = LocalView.current
     DisposableEffect(view) {
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.R) return@DisposableEffect onDispose { }
         val controller = view.windowInsetsController
         var asked = false
         val listener = object : WindowInsetsController.OnControllableInsetsChangedListener {

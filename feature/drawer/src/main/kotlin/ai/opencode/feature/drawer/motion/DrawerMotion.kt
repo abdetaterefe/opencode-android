@@ -9,6 +9,7 @@ import ai.opencode.core.motion.SpringSolver
 import ai.opencode.core.motion.motionFrameLoop
 import ai.opencode.core.motion.rememberFrameDurationSeconds
 import ai.opencode.feature.drawer.list.DrawerListShortcuts
+import android.os.Build
 import android.view.RoundedCorner
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.State
@@ -203,6 +204,7 @@ object DrawerCorner {
 
     /** The window's bottom corner radius in px (0 on a square display). */
     fun displayRadiusPx(view: android.view.View): Int {
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.S) return 0
         val insets = view.rootWindowInsets ?: return 0
         val left = insets.getRoundedCorner(RoundedCorner.POSITION_BOTTOM_LEFT)?.radius ?: 0
         val right = insets.getRoundedCorner(RoundedCorner.POSITION_BOTTOM_RIGHT)?.radius ?: 0

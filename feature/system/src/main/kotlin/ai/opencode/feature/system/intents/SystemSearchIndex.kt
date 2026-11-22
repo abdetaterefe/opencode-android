@@ -6,6 +6,7 @@ import ai.opencode.feature.system.R
 import ai.opencode.feature.system.SessionDirectory
 import ai.opencode.feature.system.SystemAction
 import android.app.appsearch.AppSearchBatchResult
+import android.os.Build
 import android.app.appsearch.AppSearchManager
 import android.app.appsearch.AppSearchResult
 import android.app.appsearch.AppSearchSchema
@@ -46,16 +47,17 @@ internal object SystemSearchIndex {
 
     private val executor: Executor = Executors.newSingleThreadExecutor { Thread(it, "SystemSearchIndex") }
     private val lock = Mutex()
-    private var session: AppSearchSession? = null
+    private var session: Any? = null
 
     /** Indexes what changed and removes what left the list (a deletion, or a session that aged out of it). */
     suspend fun index(context: Context, server: SessionDirectory.Server, previous: SessionDirectory.Server?) = lock.withLock {
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.S) return@withLock
         val current = server.sessions.mapTo(HashSet()) { it.id }
         val removed = previous?.sessions.orEmpty().map { it.id }.filter { it !in current }
         val unchanged = previous?.sessions.orEmpty().toSet()
         val changed = server.sessions.filter { it !in unchanged }
         if (removed.isEmpty() && changed.isEmpty()) return@withLock
-        val session = session(context) ?: return@withLock
+        val session = session(context) as? AppSearchSession ?: return@withLock
         if (removed.isNotEmpty()) {
             val request = RemoveByDocumentIdRequest.Builder(server.key)
                 .addIds(removed.map { identifier(server.key, it) })
@@ -72,7 +74,8 @@ internal object SystemSearchIndex {
 
     /** Removes a forgotten server's sessions. */
     suspend fun remove(context: Context, serverKey: String) = lock.withLock {
-        val session = session(context) ?: return@withLock
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.S) return@withLock
+        val session = session(context) as? AppSearchSession ?: return@withLock
         val spec = SearchSpec.Builder().addFilterNamespaces(serverKey).build()
         val result = suspendCancellableCoroutine { continuation ->
             session.remove("", spec, executor) { result: AppSearchResult<Void> -> continuation.resume(result) }
@@ -102,7 +105,7 @@ internal object SystemSearchIndex {
             .build()
     }
 
-    private suspend fun session(context: Context): AppSearchSession? {
+    private suspend fun session(context: Context): Any? {
         session?.let { return it }
         val manager = context.getSystemService(AppSearchManager::class.java) ?: return null
         val created = suspendCancellableCoroutine { continuation ->

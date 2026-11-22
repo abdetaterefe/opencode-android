@@ -19,6 +19,7 @@ import ai.opencode.core.ui.OpenCodeSecondaryButton
 import ai.opencode.core.ui.SFSymbol
 import android.content.Context
 import android.content.Intent
+import android.os.Build
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
@@ -99,7 +100,7 @@ class AskOpenCodeActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         enableEdgeToEdge()
         super.onCreate(savedInstanceState)
-        window.setHideOverlayWindows(true)
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) window.setHideOverlayWindows(true)
         window.decorView.filterTouchesWhenObscured = true
         if (savedInstanceState == null) model.start(intent, sendsAtOnce = AppActionActivity.isVerifiedAssistant(this))
         setContent {

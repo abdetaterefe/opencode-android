@@ -6,6 +6,7 @@ import ai.opencode.core.dependencies.dependency
 import android.app.LocaleConfig
 import android.app.LocaleManager
 import android.icu.util.ULocale
+import android.os.Build
 import android.os.LocaleList
 import java.text.Normalizer
 import java.util.Locale
@@ -26,6 +27,7 @@ class AppLanguageClient(
 ) {
     companion object Key : DependencyKey<AppLanguageClient> {
         override val liveValue: AppLanguageClient by lazy {
+            if (Build.VERSION.SDK_INT < Build.VERSION_CODES.TIRAMISU) return@lazy AppLanguageClient()
             val context = dependency(AppContext)
             val manager = context.getSystemService(LocaleManager::class.java)
             AppLanguageClient(

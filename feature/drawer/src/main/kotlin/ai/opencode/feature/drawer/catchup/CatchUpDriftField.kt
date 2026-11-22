@@ -3,6 +3,7 @@ package ai.opencode.feature.drawer.catchup
 import ai.opencode.core.motion.rememberReduceMotion
 import ai.opencode.core.ui.OpenCodeTheme
 import android.graphics.RuntimeShader
+import android.os.Build
 import android.view.accessibility.AccessibilityManager
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.layout.WindowInsets
@@ -68,6 +69,7 @@ fun CatchUpDriftFieldView(isFinished: Boolean, modifier: Modifier = Modifier) {
     }
 
     Canvas(modifier.clearAndSetSemantics {}) {
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.TIRAMISU) return@Canvas
         val scale = density.density
         val shader = renderer.update(
             widthPx = size.width,
@@ -104,7 +106,7 @@ internal fun rememberTouchExplorationEnabled(): Boolean {
 }
 /** Owns the shader and its uniforms. */
 internal class CatchUpDriftRenderer {
-    private val shader = RuntimeShader(SHADER)
+    private val shader: RuntimeShader? = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) RuntimeShader(SHADER) else null
     private val startTime = clock()
 
     fun update(
@@ -119,7 +121,9 @@ internal class CatchUpDriftRenderer {
         safeTopPx: Float,
         safeBottomPx: Float,
     ): RuntimeShader? {
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.TIRAMISU) return null
         if (widthPx < 1 || heightPx < 1 || scale <= 0) return null
+        val shader = this.shader ?: return null
         val widthPt = widthPx / scale
         val heightPt = heightPx / scale
         val cols = floor(widthPt / PITCH_PT)

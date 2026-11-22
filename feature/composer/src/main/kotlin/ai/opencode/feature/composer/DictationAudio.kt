@@ -10,6 +10,7 @@ import android.annotation.SuppressLint
 import android.app.Activity
 import android.app.Application
 import android.content.Context
+import android.os.Build
 import android.media.AudioAttributes
 import android.media.AudioDeviceCallback
 import android.media.AudioDeviceInfo
@@ -803,8 +804,10 @@ private object LiveDictationAudioEvents {
             }
         }, main)
         // A call taking the audio.
-        audioManager.addOnModeChangedListener(Executor(main::post)) { mode ->
-            if (isCallMode(mode)) handler(DictationAudioEvent.InterruptionBegan)
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+            audioManager.addOnModeChangedListener(Executor(main::post)) { mode ->
+                if (isCallMode(mode)) handler(DictationAudioEvent.InterruptionBegan)
+            }
         }
         // Devices coming and going.
         audioManager.registerAudioDeviceCallback(object : AudioDeviceCallback() {
@@ -896,10 +899,10 @@ object LiveCapture {
             if (previous != null && id != previous) onEvent(DictationCaptureEvent.Interrupted)
         }
         record.addOnRoutingChangedListener(routing, main)
-        val modes = AudioManager.OnModeChangedListener { mode ->
+        val modes = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) AudioManager.OnModeChangedListener { mode ->
             if (LiveDictationAudioEvents.isCallMode(mode)) onEvent(DictationCaptureEvent.Interrupted)
-        }
-        audioManager.addOnModeChangedListener(Executor(main::post), modes)
+        } else null
+        if (modes != null) audioManager.addOnModeChangedListener(Executor(main::post), modes)
         val recordings = object : AudioManager.AudioRecordingCallback() {
             override fun onRecordingConfigChanged(configs: MutableList<AudioRecordingConfiguration>) {
                 val mine = configs.firstOrNull { it.clientAudioSessionId == record.audioSessionId } ?: return
@@ -916,7 +919,7 @@ object LiveCapture {
             },
             removeObservers = {
                 record.removeOnRoutingChangedListener(routing)
-                audioManager.removeOnModeChangedListener(modes)
+                if (modes != null && Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) audioManager.removeOnModeChangedListener(modes)
                 audioManager.unregisterAudioRecordingCallback(recordings)
             },
         )

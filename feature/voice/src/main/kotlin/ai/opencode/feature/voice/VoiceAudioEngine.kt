@@ -10,6 +10,7 @@ import android.content.Context
 import android.content.pm.PackageManager
 import android.media.*
 import android.media.audiofx.*
+import android.os.Build
 import android.os.Handler
 import android.os.Looper
 import android.os.Process
@@ -66,13 +67,13 @@ class LiveVoiceAudioSession(private val context: Context) : VoiceAudioSessionCon
     private var observedMode: Int? = null
     private val deviceIDs = mutableSetOf<Int>()
     private val handler = Handler(Looper.getMainLooper())
-    private val modeListener = AudioManager.OnModeChangedListener {
+    private val modeListener: Any? = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) AudioManager.OnModeChangedListener {
         val changed = synchronized(this) {
             val current = manager.mode
             (registered && current != observedMode).also { observedMode = current }
         }
         if (changed) routeChanged()
-    }
+    } else null
     private val devices = object : AudioDeviceCallback() {
         override fun onAudioDevicesAdded(addedDevices: Array<out AudioDeviceInfo>) {
             val changed = synchronized(this@LiveVoiceAudioSession) {
@@ -160,7 +161,9 @@ class LiveVoiceAudioSession(private val context: Context) : VoiceAudioSessionCon
             // registerAudioDeviceCallback immediately reports every existing device.
             deviceIDs.addAll(manager.getDevices(AudioManager.GET_DEVICES_INPUTS or AudioManager.GET_DEVICES_OUTPUTS).map { it.id })
             manager.registerAudioDeviceCallback(devices, handler)
-            manager.addOnModeChangedListener(context.mainExecutor, modeListener)
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S && modeListener != null) {
+                manager.addOnModeChangedListener(context.mainExecutor, modeListener as AudioManager.OnModeChangedListener)
+            }
             // A selected communication device is an output override. Our route() writes it too.
             registered = true
         }
@@ -169,7 +172,9 @@ class LiveVoiceAudioSession(private val context: Context) : VoiceAudioSessionCon
         listeners.remove(id)
         if (listeners.isEmpty() && registered) {
             manager.unregisterAudioDeviceCallback(devices)
-            manager.removeOnModeChangedListener(modeListener)
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S && modeListener != null) {
+                manager.removeOnModeChangedListener(modeListener as AudioManager.OnModeChangedListener)
+            }
             registered = false
             deviceIDs.clear()
         }

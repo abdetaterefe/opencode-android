@@ -20,6 +20,7 @@ import android.Manifest
 import android.app.UiModeManager
 import android.content.Context
 import android.content.Intent
+import android.os.Build
 import android.content.pm.PackageManager
 import androidx.activity.result.contract.ActivityResultContracts
 import kotlinx.coroutines.CompletableDeferred
@@ -200,6 +201,7 @@ class MainActivity : ComponentActivity() {
 
     /** The splash's day/night colour follows the app's night mode, so that mirrors Appearance. */
     private fun followAppearanceNightMode() {
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.S) return
         val uiModeManager = getSystemService(UiModeManager::class.java)
         lifecycleScope.launch {
             shared(ThemeSharedKeys.appearanceColorScheme).flow.collect { scheme ->

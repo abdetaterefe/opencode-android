@@ -3,6 +3,7 @@ package ai.opencode.feature.drawer.motion
 import ai.opencode.core.ui.DrawerKeyboardSignals
 import ai.opencode.core.ui.LocalDrawerKeyboardSignals
 import android.graphics.Insets
+import android.os.Build
 import android.os.CancellationSignal
 import android.view.View
 import android.view.WindowInsets
@@ -471,6 +472,7 @@ class ImeFollower(private val view: View) : DrawerKeyboardHold.Follower {
             return
         }
         if (requested) return
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.R) return onRefused()
         val insetsController = view.windowInsetsController ?: return onRefused()
         if (!view.hasWindowFocus()) return onRefused()
         requested = true

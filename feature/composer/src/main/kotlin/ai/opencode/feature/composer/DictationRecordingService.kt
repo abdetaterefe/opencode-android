@@ -12,6 +12,7 @@ import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.content.pm.ServiceInfo
+import android.os.Build
 import android.os.IBinder
 
 /**
@@ -80,7 +81,7 @@ class DictationRecordingService : Service() {
             .setOngoing(true)
             .setContentTitle("OpenCode")
             .setContentText(getString(R.string.composer_dictation_notification_text))
-            .setForegroundServiceBehavior(Notification.FOREGROUND_SERVICE_DEFERRED)
+            .apply { if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) setForegroundServiceBehavior(Notification.FOREGROUND_SERVICE_DEFERRED) }
         packageManager.getLaunchIntentForPackage(packageName)?.let { launch ->
             launch.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_RESET_TASK_IF_NEEDED)
             builder.setContentIntent(PendingIntent.getActivity(this, 0, launch, PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_UPDATE_CURRENT))

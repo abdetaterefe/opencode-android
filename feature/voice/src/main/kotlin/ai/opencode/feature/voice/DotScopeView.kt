@@ -12,6 +12,7 @@ import androidx.core.graphics.createBitmap
 import android.graphics.BitmapShader
 import android.graphics.ColorSpace
 import android.graphics.RuntimeShader
+import android.os.Build
 import android.graphics.Shader
 import android.util.Half
 import androidx.compose.foundation.Canvas
@@ -187,7 +188,7 @@ class DotScopeRenderer private constructor() {
     var isQuiet = false
         private set
 
-    private val shader = RuntimeShader(DotScopeShaders.dotScopeFragment)
+    private val shader by lazy { RuntimeShader(DotScopeShaders.dotScopeFragment) }
     private var grid: DotScopeGrid? = null
     private var field = FloatArray(0)
     private var bitmap: Bitmap? = null
@@ -366,6 +367,7 @@ class DotScopeRenderer private constructor() {
          * at most once a launch.
          */
         fun prepare() {
+            if (Build.VERSION.SDK_INT < Build.VERSION_CODES.TIRAMISU) return
             if (prepared) return
             prepared = true
             Thread { runCatching { RuntimeShader(DotScopeShaders.dotScopeFragment) } }.start()
@@ -385,9 +387,12 @@ class DotScopeRenderer private constructor() {
         /** Whether display frame [frame] draws: all of them, or every other one while quiet. */
         fun drawsFrame(isQuiet: Boolean, frame: Long): Boolean = !isQuiet || frame % 2 == 0L
 
-        fun make(): DotScopeRenderer? = runCatching { DotScopeRenderer() }
-            .onFailure { AppLog.voice.error("dot_scope_shader_failed type=${it.javaClass.simpleName}") }
-            .getOrNull()
+        fun make(): DotScopeRenderer? {
+            if (Build.VERSION.SDK_INT < Build.VERSION_CODES.TIRAMISU) return null
+            return runCatching { DotScopeRenderer() }
+                .onFailure { AppLog.voice.error("dot_scope_shader_failed type=${it.javaClass.simpleName}") }
+                .getOrNull()
+        }
 
         /**
          * A 6.4 s exchange: you speak, a beat, the agent answers, a beat. Each voice is a

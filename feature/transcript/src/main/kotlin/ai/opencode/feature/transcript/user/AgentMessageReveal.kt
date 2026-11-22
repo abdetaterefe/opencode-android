@@ -5,6 +5,7 @@ import ai.opencode.core.ui.OpenCodeTheme
 import ai.opencode.feature.media.TranscriptMetrics
 import ai.opencode.feature.transcript.TranscriptTunables
 import android.graphics.RuntimeShader
+import android.os.Build
 import androidx.compose.foundation.layout.Box
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.Immutable
@@ -167,10 +168,11 @@ fun AgentMessageRevealLight(light: Double, corners: UserSurfaceCorners = UserSur
 
 /** The reveal light's shader, drawn into a surface's own bounds (shared by [AgentMessageRevealLight] and the bubble fill). */
 internal class AgentRevealGlow {
-    private val shader = RuntimeShader(AGENT_REVEAL_GLOW_AGSL)
-    private val brush = ShaderBrush(shader)
+    private val shader by lazy { RuntimeShader(AGENT_REVEAL_GLOW_AGSL) }
+    private val brush by lazy { ShaderBrush(shader) }
 
     fun DrawScope.draw(light: Double, corners: UserSurfaceCorners, dark: Boolean) {
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.TIRAMISU) return
         if (light <= 1e-4) return
         val (lift, glow) = AgentMessageReveal.colors(dark)
         val full = TranscriptMetrics.bubbleCornerRadius.value

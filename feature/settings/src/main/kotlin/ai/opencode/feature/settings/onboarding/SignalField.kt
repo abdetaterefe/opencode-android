@@ -9,6 +9,7 @@ import ai.opencode.core.ui.OpenCodeTheme
 import ai.opencode.feature.settings.onboarding.OnboardingPlaygroundFeature.Phase
 import ai.opencode.feature.settings.onboarding.OnboardingPlaygroundFeature.Variant
 import android.graphics.RuntimeShader
+import android.os.Build
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.Composable
@@ -109,6 +110,10 @@ internal data class SignalFieldScene(
  */
 @Composable
 internal fun SignalFieldView(scene: SignalFieldScene, modifier: Modifier = Modifier) {
+    if (Build.VERSION.SDK_INT < Build.VERSION_CODES.TIRAMISU) {
+        Spacer(modifier)
+        return
+    }
     val reduceMotion = rememberReduceMotion()
     val colors = OpenCodeTheme.colors
     val renderer = remember { SignalFieldRenderer() }

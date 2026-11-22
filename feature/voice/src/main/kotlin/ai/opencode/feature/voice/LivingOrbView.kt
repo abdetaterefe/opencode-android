@@ -7,6 +7,7 @@ import android.graphics.Bitmap
 import android.graphics.BitmapShader
 import android.graphics.ColorSpace
 import android.graphics.RuntimeShader
+import android.os.Build
 import android.graphics.Shader
 import android.util.Half
 import androidx.compose.foundation.Canvas
@@ -159,7 +160,7 @@ fun LivingOrbView(config: LivingOrbConfig, modifier: Modifier = Modifier, isHidd
  * Android: the cell kernel runs on the CPU and its cells reach the shader as a half-float bitmap.
  */
 class WispOrbRenderer private constructor() {
-    private val shader = RuntimeShader(WispOrbShaders.wispOrbFragment)
+    private val shader by lazy { RuntimeShader(WispOrbShaders.wispOrbFragment) }
     private val sim = WispOrbSim()
     private var columns = 0
     /** Each cell's fast and slow phosphor for both voices, kept between frames. */
@@ -308,7 +309,10 @@ class WispOrbRenderer private constructor() {
         /** `WISP_TRACE`. */
         const val traceCount = 64
 
-        fun make(): WispOrbRenderer? = runCatching { WispOrbRenderer() }.getOrNull()
+        fun make(): WispOrbRenderer? {
+            if (Build.VERSION.SDK_INT < Build.VERSION_CODES.TIRAMISU) return null
+            return runCatching { WispOrbRenderer() }.getOrNull()
+        }
     }
 }
 

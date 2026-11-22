@@ -11,6 +11,7 @@ import ai.opencode.core.sharing.shared
 import ai.opencode.server.OpenCodeClient
 import ai.opencode.server.OpenCodeServer
 import android.Manifest
+import android.os.Build
 import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
@@ -264,7 +265,8 @@ class SessionNotifications internal constructor(private val tokens: PushTokenPro
     fun permissionStatus(): NotificationPermission {
         val context = dependency(AppContext)
         if (NotificationManagerCompat.from(context).areNotificationsEnabled() &&
-            ContextCompat.checkSelfPermission(context, Manifest.permission.POST_NOTIFICATIONS) == PackageManager.PERMISSION_GRANTED
+            (Build.VERSION.SDK_INT < Build.VERSION_CODES.TIRAMISU ||
+                ContextCompat.checkSelfPermission(context, Manifest.permission.POST_NOTIFICATIONS) == PackageManager.PERMISSION_GRANTED)
         ) return NotificationPermission.Enabled
         val asked = context.getSharedPreferences(PREFERENCES, Context.MODE_PRIVATE).getBoolean(ASKED, false)
         return if (asked) NotificationPermission.Disabled else NotificationPermission.NotDetermined
