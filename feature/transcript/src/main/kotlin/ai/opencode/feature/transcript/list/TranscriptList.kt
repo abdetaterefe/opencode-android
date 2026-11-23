@@ -48,6 +48,7 @@ import ai.opencode.feature.transcript.user.TranscriptMessageRow
 import ai.opencode.feature.transcript.user.TranscriptUserMessage
 import ai.opencode.feature.transcript.user.UserMessageRun
 import ai.opencode.feature.transcript.user.findActivity
+import android.os.Build
 import android.os.SystemClock
 import android.view.accessibility.AccessibilityManager
 import android.window.OnBackInvokedCallback
@@ -162,6 +163,7 @@ private class TranscriptListPosition(val state: LazyListState, anchor: Pair<Stri
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
 private fun ReplySelectionBackHandler(selection: TranscriptReplySelection) {
+    if (Build.VERSION.SDK_INT < Build.VERSION_CODES.TIRAMISU) return
     if (!selection.isSelected || WindowInsets.isImeVisible) return
     val activity = LocalContext.current.findActivity() ?: return
     DisposableEffect(activity, selection) {
